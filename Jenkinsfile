@@ -7,13 +7,11 @@ pipeline {
         jdk 'JDK17'
     }
 
-    stages {
+    environment {
+        IMAGE_NAME = "springdemoapp"
+    }
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
+    stages {
 
         stage('Build') {
             steps {
@@ -21,12 +19,20 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn test'
+                sh 'docker build -t $IMAGE_NAME .'
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                sh '''
+                docker rm -f springdemoapp || true
+                docker run -d -p 8085:8080 --name springdemoapp $IMAGE_NAME
+                '''
             }
         }
 
     }
-
 }
